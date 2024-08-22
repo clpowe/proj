@@ -1,0 +1,75 @@
+---
+// astro tools
+import { type GetStaticPaths } from 'astro'
+import Image from 'astro/components/Image.astro'
+import { type CollectionEntry, getCollection } from 'astro:content'
+
+// components
+import FormatedDate from '@/components/ui/FormatedDate.astro'
+import Heading from '@/components/ui/Heading.astro'
+import BaseLayout from '@/layouts/BaseLayout.astro'
+
+// assets
+import katie from '@/assets/avatar.jpg'
+
+// dynamic functions
+export const getStaticPaths = (async () => {
+	const allPosts = await getCollection('posts', ({ data }) => !data.isDraft)
+	return allPosts.map((p) => ({
+		params: {
+			slug: p.slug
+		},
+		props: {
+			post: p
+		}
+	}))
+}) satisfies GetStaticPaths
+
+
+type Props = {
+	post: CollectionEntry<'posts'>
+}
+
+const { post } = Astro.props
+
+const { Content } = await post.render()
+
+const { title, pubDate, description, image } = post.data
+---
+
+<BaseLayout title={title} description={description}>
+	<section class='blog-metadata' aria-label='blog-metadata'>
+		<header class=''>
+			<FormatedDate pubDate={pubDate} />
+			<Heading tagName='h1' size='h2'>{title}</Heading>
+			<p>{description}</p>
+		</header>
+		<Image
+			src={image}
+			alt={title}
+			width={1000}
+			height={400}
+			class='hero-image'
+		/>
+	</section>
+	<section class='blog-content' aria-label='Post content'>
+		<Content />
+	</section>
+	<section aria-label='Post Author' class='author-metadata'>
+		<Image
+			src={katie}
+			alt='Katie Haus'
+			width={140}
+			height={140}
+			class='avatar'
+		/>
+		<div>
+			<Heading tagName='h2' size='h2'>👋 Hey, I’m Katie</Heading>
+			<p>
+				I like to write about productivity, web development, design, and working
+				with clients. Get a sense of what it’s like to work with me and
+				understand my process.
+			</p>
+		</div>
+	</section>
+</BaseLayout>
